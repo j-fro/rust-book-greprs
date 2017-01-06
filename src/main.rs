@@ -1,20 +1,20 @@
+extern crate greprs;
+
 use std::env;
-use std::fs::File;
-use std::io::prelude::*;
+use std::process;
+
+use greprs::Config;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let search = &args[1];
-    let filename = &args[2];
+    let config = Config::new(&args).unwrap_or_else(|err| {
+        println!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
 
-    println!("Searching for {}", search);
-    println!("Searching in {}", filename);
-
-    let mut f = File::open(filename).expect("File not found");
-
-    let mut contents = String::new();
-    f.read_to_string(&mut contents).expect("Something went wrong when reading the file");
-
-    println!("With text {}", contents);
+    if let Err(e) = greprs::run(config) {
+        println!("Application error: {}", e);
+        process::exit(1);
+    }
 }
