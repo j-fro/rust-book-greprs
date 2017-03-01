@@ -6,15 +6,11 @@ use std::error::Error;
 pub struct Config {
     pub search: String,
     pub filename: String,
-    pub case_sensitive: bool
+    pub case_sensitive: bool,
 }
 
 impl Config {
-    pub fn new(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("not enough arguments");
-        }
-
+    pub fn new(mut args: env::Args) -> Result<Config, &'static str> {
         let mut case_sensitive = true;
 
         for (name, _) in env::vars() {
@@ -23,13 +19,22 @@ impl Config {
             }
         }
 
-        let search = args[1].clone();
-        let filename = args[2].clone();
+        args.next();
+
+        let search = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a search string"),
+        };
+
+        let filename = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a filename"),
+        };
 
         Ok(Config {
             search: search,
             filename: filename,
-            case_sensitive: case_sensitive
+            case_sensitive: case_sensitive,
         })
     }
 }
@@ -102,6 +107,7 @@ safe, fast, productive.
 Pick three.
 Trust me.";
 
-        assert_eq!(vec!["Rust:", "Trust me."], grep_case_insensitive(search, contents));
+        assert_eq!(vec!["Rust:", "Trust me."],
+                   grep_case_insensitive(search, contents));
     }
 }
